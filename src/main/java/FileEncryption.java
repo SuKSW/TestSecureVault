@@ -10,6 +10,7 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -45,8 +46,7 @@ public class FileEncryption {
         KeyGenerator kgen = KeyGenerator.getInstance("AES");
         kgen.init(AES_Key_Size);
         byte[] aesKey = kgen.generateKey().getEncoded();
-        log.info("Creating and storing key");
-        log.info(new String(SecureVaultUtils.toChars(SecureVaultUtils.base64Encode(aesKey))));
+        log.info("Creating and storing AES key");
 
         //store key = encrypt -> encode -> string
         byte[] encryptedKeyBytes = SecureVaultUtils.base64Encode(secureVault.encrypt(aesKey));
@@ -61,8 +61,7 @@ public class FileEncryption {
         String encryptedAesKeyString = SecureVaultUtils.resolveFileToString(Paths.get(Constants.ENCRYPTED_AES_KEY_FILE));
         byte[] encryptedAesKeyBytes = SecureVaultUtils.base64Decode(SecureVaultUtils.toBytes(encryptedAesKeyString));
         byte[] aesKeyBytes = secureVault.decrypt(encryptedAesKeyBytes);
-        log.info("Encrypting file using stored key");
-        log.info(new String(SecureVaultUtils.toChars(SecureVaultUtils.base64Encode(aesKeyBytes))));
+        log.info("Encrypting file using stored AES key");
 
         //use AES key to encrypt file
         SecretKeySpec aesKeySpec = new SecretKeySpec(aesKeyBytes, "AES");
@@ -75,13 +74,12 @@ public class FileEncryption {
         cipherOutputStream.close();
     }
 
-    public void decryptFile(File inFile, File outFile) throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, SecureVaultException {
+    public String readFromEncryptedFile(File inFile) throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, SecureVaultException {
         //decrypt AES key using secure vault
         String encryptedAesKeyString = SecureVaultUtils.resolveFileToString(Paths.get(Constants.ENCRYPTED_AES_KEY_FILE));
         byte[] encryptedAesKeyBytes = SecureVaultUtils.base64Decode(SecureVaultUtils.toBytes(encryptedAesKeyString));
         byte[] aesKeyBytes = secureVault.decrypt(encryptedAesKeyBytes);
-        log.info("Decrypting file using stored key");
-        log.info(new String(SecureVaultUtils.toChars(SecureVaultUtils.base64Encode(aesKeyBytes))));
+        log.info("Decrypting file using stored AES key");
 
 
         //use AES key to decrypt file
@@ -89,10 +87,11 @@ public class FileEncryption {
         aesCipher.init(Cipher.DECRYPT_MODE, aesKeySpec);
 
         CipherInputStream cipherInputStream = new CipherInputStream(new FileInputStream(inFile), aesCipher);
-        FileOutputStream outputStream = new FileOutputStream(outFile);
-        copy(cipherInputStream, outputStream);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        copy(cipherInputStream, byteArrayOutputStream);
+        byte[] outByteArray = byteArrayOutputStream.toByteArray();
         cipherInputStream.close();
-        outputStream.close();
+        return new String(SecureVaultUtils.toChars(outByteArray));
     }
 
     private void copy(InputStream is, OutputStream os) throws IOException {

@@ -18,7 +18,6 @@ public class Both {
     public static void main(String[] args) throws NoSuchAlgorithmException, NoSuchPaddingException {
         File inputFile = new File(Constants.INPUT_DOC);
         File encryptedFile = new File(Constants.ENCRYPTED_DOC);
-        File decryptedFile = new File(Constants.DECRYPTED_DOC);
 
         Path secureVaultPath = Paths.get(Constants.CHANGING_FOLDER+"/secure-vault.yaml");
         FileEncryption fileEncryption;
@@ -30,7 +29,7 @@ public class Both {
             fileEncryption = new FileEncryption(secureVault);
             fileEncryption.createAndStoreAESKey();
             fileEncryption.encryptFile(inputFile, encryptedFile);
-            fileEncryption.decryptFile(encryptedFile, decryptedFile);
+            System.out.println(fileEncryption.readFromEncryptedFile(encryptedFile));
 
         } catch (IOException e) {
             e.printStackTrace();
