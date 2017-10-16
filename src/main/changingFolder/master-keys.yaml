@@ -1,0 +1,5 @@
+permanent: true
+masterKeys:
+  keyStorePassword: !!binary d3NvMmNhcmJvbg==
+  privateKeyPassword: !!binary d3NvMmNhcmJvbg==
+  
