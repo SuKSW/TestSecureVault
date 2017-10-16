@@ -17,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -51,9 +50,10 @@ public class FileEncryption {
         //store key = encrypt -> encode -> string
         byte[] encryptedKeyBytes = SecureVaultUtils.base64Encode(secureVault.encrypt(aesKey));
         String encryptedKeyString = new String(SecureVaultUtils.toChars(encryptedKeyBytes));
-        File decryptedFile = new File(Constants.ENCRYPTED_AES_KEY_FILE);
-        FileOutputStream outputStream = new FileOutputStream(decryptedFile);
-        outputStream.write(encryptedKeyString.getBytes(StandardCharsets.UTF_8));
+
+        File encryptedAesKeyFile = new File(Constants.ENCRYPTED_AES_KEY_FILE);
+        FileOutputStream outputStream = new FileOutputStream(encryptedAesKeyFile);
+        outputStream.write(SecureVaultUtils.toBytes(encryptedKeyString));
     }
 
     public void encryptFile(File inFile, File outFile) throws IOException, InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, SecureVaultException {
